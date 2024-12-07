@@ -47,7 +47,7 @@
     // Check if a user is already logged in
 if (localStorage.getItem("loggedInUser")) {
   alert("You are already logged in!");
-  window.location.href = "ledger.html"; // Redirect to the main ledger page
+  window.location.href = "index.html"; // Redirect to the main ledger page
 }
 
 function login() {
@@ -64,7 +64,7 @@ function login() {
   if (users[email] && users[email].password === password) {
     localStorage.setItem("loggedInUser", email); // Save the logged-in user's email
     showMessage("Login successful!", "success");
-    setTimeout(() => window.location.href = "ledger.html", 1000); // Redirect to ledger page
+    setTimeout(() => window.location.href = "index.html", 1000); // Redirect to ledger page
   } else {
     showMessage("Invalid email or password.");
   }
