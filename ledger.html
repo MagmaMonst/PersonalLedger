@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Ledger</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #121212; /* Black background */
+      color: #f0f0f0; /* Light gray text */
+    }
+
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+      color: #ffa500; /* Orange title */
+    }
+
+    .ledger-section {
+      margin: 20px auto;
+      padding: 20px;
+      max-width: 500px;
+      background-color: #1e1e1e; /* Dark gray background */
+      border: 1px solid #ffa500; /* Orange border */
+      border-radius: 10px;
+    }
+
+    h2 {
+      color: #ffa500; /* Orange subheadings */
+      margin-bottom: 10px;
+    }
+
+    select, input, button {
+      padding: 10px;
+      margin: 5px 0;
+      width: calc(100% - 22px); /* Full width with spacing */
+      border: 1px solid #ffa500; /* Orange border */
+      border-radius: 5px;
+      background-color: #2a2a2a; /* Darker gray */
+      color: #f0f0f0; /* Light gray text */
+    }
+
+    button {
+      cursor: pointer;
+      background-color: #ffa500; /* Orange button */
+      color: #121212; /* Black text */
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #ff8c00; /* Darker orange on hover */
+    }
+
+    #ledger {
+      margin: 30px auto;
+      max-width: 600px;
+      background-color: #1e1e1e; /* Dark gray background */
+      border: 1px solid #ffa500; /* Orange border */
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .entry {
+      padding: 5px 0;
+      margin-bottom: 5px;
+      border-bottom: 1px solid #333; /* Subtle gray line */
+    }
+
+    .income {
+      color: #00ff00; /* Green for income */
+    }
+
+    .expense {
+      color: #ff4500; /* Red for expenses */
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Personal Ledger</h1>
+
+  <div class="ledger-section">
+    <h2>Income</h2>
+    <select id="incomeDescription">
+      <option value="Allowance">Allowance</option>
+      <option value="Part time Job">Part-time Job</option>
+      <option value="Gift Money">Gift Money</option>
+      <option value="Freelancing">Freelancing</option>
+      <option value="" selected>Other (Type Below)</option>
+    </select>
+    <input type="text" id="customIncomeDescription" placeholder="Custom Income Description (Optional)">
+    <input type="number" id="incomeAmount" placeholder="Amount" step="0.01">
+    <button onclick="addIncome()">Add Income</button>
+  </div>
+
+  <div class="ledger-section">
+    <h2>Expense</h2>
+    <select id="expenseDescription">
+      <option value="Shopping">Shopping</option>
+      <option value="Snacks">Snacks</option>
+      <option value="Gifts">Gifts</option>
+      <option value="Gadgets">Gadgets</option>
+      <option value="" selected>Other (Type Below)</option>
+    </select>
+    <input type="text" id="customExpenseDescription" placeholder="Custom Expense Description (Optional)">
+    <input type="number" id="expenseAmount" placeholder="Amount" step="0.01">
+    <button onclick="addExpense()">Add Expense</button>
+  </div>
+
+  <div id="ledger">
+    <h3>Ledger Entries:</h3>
+    <div id="entriesList"></div>
+  </div>
+
+  <button onclick="goToReportPage()" style="margin: 20px auto; display: block; width: 200px;">View Monthly Report</button>
+
+  <script>
+    class PersonalLedger {
+      constructor() {
+        this.entries = [];
+      }
+      
+
+      addIncome(description, amount) {
+        const entry = {
+          description,
+          amount: parseFloat(amount),
+          type: "income",
+          date: new Date().toLocaleString(),
+        };
+        this.entries.push(entry);
+        this.updateLedger();
+      }
+
+      addExpense(description, amount) {
+        const entry = {
+          description,
+          amount: parseFloat(amount),
+          type: "expense",
+          date: new Date().toLocaleString(),
+        };
+        this.entries.push(entry);
+        this.updateLedger();
+      }
+
+      updateLedger() {
+        const entriesList = document.getElementById("entriesList");
+        entriesList.innerHTML = "";
+
+        this.entries.forEach(entry => {
+          const entryElement = document.createElement("div");
+          entryElement.classList.add("entry", entry.type);
+          entryElement.innerHTML = `[${entry.date}] ${entry.description} - ₹${entry.amount.toFixed(2)} (${entry.type})`;
+          entriesList.appendChild(entryElement);
+        });
+
+        localStorage.setItem("ledgerData", JSON.stringify(this.entries));
+      }
+    }
+
+    const myLedger = new PersonalLedger();
+
+    function addIncome() {
+      const selectDescription = document.getElementById("incomeDescription").value;
+      const customDescription = document.getElementById("customIncomeDescription").value;
+      const description = customDescription || selectDescription;
+
+      const amount = document.getElementById("incomeAmount").value;
+      if (description && amount > 0) {
+        myLedger.addIncome(description, amount);
+        document.getElementById("customIncomeDescription").value = "";
+        document.getElementById("incomeAmount").value = "";
+      } else {
+        alert("Please enter valid income details!");
+      }
+    }
+
+    function addExpense() {
+      const selectDescription = document.getElementById("expenseDescription").value;
+      const customDescription = document.getElementById("customExpenseDescription").value;
+      const description = customDescription || selectDescription;
+
+      const amount = document.getElementById("expenseAmount").value;
+      if (description && amount > 0) {
+        myLedger.addExpense(description, amount);
+        document.getElementById("customExpenseDescription").value = "";
+        document.getElementById("expenseAmount").value = "";
+      } else {
+        alert("Please enter valid expense details!");
+      }
+    }
+
+    function goToReportPage() {
+      window.location.href = "report.html";
+    }
+    
+
+  const loggedInUser = localStorage.getItem("loggedInUser");
+if (!loggedInUser) {
+  alert("Please login first.");
+  window.location.href = "login.html"; // Redirect back to login
+}
+
+// Load user's data
+const users = JSON.parse(localStorage.getItem("users"));
+const userLedger = users[loggedInUser].ledgerData || [];
+
+// Example: Show the ledger data in console
+console.log("Logged-in user:", loggedInUser);
+console.log("User's ledger data:", userLedger);
+
+function logout() {
+  // Remove the logged-in user from localStorage
+  localStorage.removeItem("loggedInUser");
+  
+  // Redirect to login page
+  window.location.href = "login.html";
+}
+
+function logout() {
+  const confirmLogout = confirm("Are you sure you want to log out?");
+  if (confirmLogout) {
+    localStorage.removeItem("loggedInUser");
+    window.location.href = "login.html";
+  }
+}
+
+  </script>
+
+</body>
+</html>
+<div>
+    <h3>Set Your Budget</h3>
+    <input type="number" id="monthlyBudget" placeholder="Enter your monthly budget">
+    <button onclick="saveBudget()">Save Budget</button>
+  </div>
+  <!--BUDGET-->
+
+  <div style="text-align: right; padding: 10px;">
+    <button onclick="logout()" style="
+      background-color: #ff4500; 
+      color: #000; 
+      border: none; 
+      border-radius: 5px; 
+      padding: 10px 20px; 
+      cursor: pointer; 
+      font-size: 16px;">
+      Logout
+    </button>
+  </div>
+  
+
+
+  

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monthly Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #121212;
+      color: #f0f0f0;
+    }
+
+    .monthly-report {
+      margin: 30px auto;
+      max-width: 700px;
+      background-color: #1e1e1e;
+      border: 1px solid #ffa500;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .monthly-report h3 {
+      color: #ffa500;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .summary, .breakdown, .metrics {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      color: #ffa500;
+      margin-bottom: 10px;
+      font-size: 1.2em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+
+    th {
+      background-color: #ffa500;
+      color: #121212;
+    }
+
+    td {
+      background-color: #2a2a2a;
+    }
+
+    .highlight {
+      color: #00ff00; /* Green for positive balances */
+    }
+
+    .danger {
+      color: #ff4500; /* Red for negative balances */
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #ffa500;
+      color: #121212;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #ff8c00;
+    }
+    body {
+      background-color: #000;
+      color: #ffa500;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      margin: 20px auto;
+      display: block;
+      background-color: #222;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ffa500;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="monthly-report">
+    <h3>Monthly Financial Report</h3>
+
+    <!-- Summary Section -->
+    <div class="summary">
+      <div class="section-title">Summary</div>
+      <p>Total Income: ₹<span id="totalIncome">0.00</span></p>
+      <p>Total Expenses: ₹<span id="totalExpenses">0.00</span></p>
+      <p>Net Balance: ₹<span id="netBalance" class="highlight">0.00</span></p>
+      <p>Number of Income Entries: <span id="incomeCount">0</span></p>
+      <p>Number of Expense Entries: <span id="expenseCount">0</span></p>
+    </div>
+
+    <!-- Breakdown Section -->
+    <div class="breakdown">
+      <div class="section-title">Category Breakdown</div>
+      <h4>Income Categories:</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Amount (₹)</th>
+          </tr>
+        </thead>
+        <tbody id="incomeBreakdown"></tbody>
+      </table>
+
+      <h4>Expense Categories:</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Amount (₹)</th>
+          </tr>
+        </thead>
+        <tbody id="expenseBreakdown"></tbody>
+      </table>
+    </div>
+
+    <!-- Metrics Section -->
+    <div class="metrics">
+      <div class="section-title">Best and Worst Metrics</div>
+      <p>Largest Income: <span id="largestIncome">N/A</span></p>
+      <p>Largest Expense: <span id="largestExpense">N/A</span></p>
+    </div>
+
+    <button onclick="goBack()">Go Back</button>
+  </div>
+
+  <script>
+    function loadReportData() {
+      const entries = JSON.parse(localStorage.getItem("ledgerData")) || [];
+      const incomeEntries = entries.filter(entry => entry.type === "income");
+      const expenseEntries = entries.filter(entry => entry.type === "expense");
+
+      // Summary
+      const totalIncome = incomeEntries.reduce((total, entry) => total + entry.amount, 0);
+      const totalExpenses = expenseEntries.reduce((total, entry) => total + entry.amount, 0);
+      document.getElementById("totalIncome").innerText = totalIncome.toFixed(2);
+      document.getElementById("totalExpenses").innerText = totalExpenses.toFixed(2);
+      document.getElementById("netBalance").innerText = (totalIncome - totalExpenses).toFixed(2);
+      document.getElementById("netBalance").className = totalIncome - totalExpenses >= 0 ? "highlight" : "danger";
+      document.getElementById("incomeCount").innerText = incomeEntries.length;
+      document.getElementById("expenseCount").innerText = expenseEntries.length;
+
+      // Breakdown
+      const incomeBreakdown = calculateCategoryTotals(incomeEntries);
+      const expenseBreakdown = calculateCategoryTotals(expenseEntries);
+      populateBreakdownTable("incomeBreakdown", incomeBreakdown);
+      populateBreakdownTable("expenseBreakdown", expenseBreakdown);
+
+      // Metrics
+      const largestIncome = incomeEntries.sort((a, b) => b.amount - a.amount)[0] || {};
+      const largestExpense = expenseEntries.sort((a, b) => b.amount - a.amount)[0] || {};
+      document.getElementById("largestIncome").innerText = largestIncome.description
+        ? `${largestIncome.description} (₹${largestIncome.amount.toFixed(2)})`
+        : "N/A";
+      document.getElementById("largestExpense").innerText = largestExpense.description
+        ? `${largestExpense.description} (₹${largestExpense.amount.toFixed(2)})`
+        : "N/A";
+    }
+
+    function calculateCategoryTotals(entries) {
+      const categoryTotals = {};
+      entries.forEach(entry => {
+        categoryTotals[entry.description] = (categoryTotals[entry.description] || 0) + entry.amount;
+      });
+      return categoryTotals;
+    }
+
+    function populateBreakdownTable(tableId, categoryTotals) {
+      const tableBody = document.getElementById(tableId);
+      tableBody.innerHTML = "";
+
+      Object.keys(categoryTotals).forEach(category => {
+        const row = document.createElement("tr");
+        const categoryCell = document.createElement("td");
+        const amountCell = document.createElement("td");
+
+        categoryCell.innerText = category;
+        amountCell.innerText = categoryTotals[category].toFixed(2);
+
+        row.appendChild(categoryCell);
+        row.appendChild(amountCell);
+        tableBody.appendChild(row);
+      });
+    }
+
+    function goBack() {
+      window.location.href = "ledger.html";
+    }
+
+    loadReportData();
+  </script>
+  <!-- Include Chart.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="ledger.js"></script>
+<script>
+  // Function to generate the pie chart
+  function renderPieChart() {
+    const loggedInUser = localStorage.getItem("loggedInUser");
+    if (!loggedInUser) {
+      alert("Please login first.");
+      window.location.href = "login.html";
+      return;
+    }
+
+    // Fetch user's ledger data
+    const users = JSON.parse(localStorage.getItem("users"));
+    const userLedger = users[loggedInUser]?.ledgerData || [];
+
+    // Calculate total income and expenses
+    const totalIncome = userLedger
+      .filter(entry => entry.type === "income")
+      .reduce((acc, entry) => acc + entry.amount, 0);
+    const totalExpenses = userLedger
+      .filter(entry => entry.type === "expense")
+      .reduce((acc, entry) => acc + entry.amount, 0);
+
+    // Get the canvas context
+    const ctx = document.getElementById("incomeExpenseChart").getContext("2d");
+
+    // Create the pie chart
+    new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: ["Income", "Expenses"],
+        datasets: [
+          {
+            data: [totalIncome, totalExpenses],
+            backgroundColor: ["#00ff00", "#ff0000"], // Green for income, red for expenses
+          },
+        ],
+      },
+      options: {
+        plugins: {
+          legend: {
+            position: "top",
+            labels: {
+              color: "#ffa500", // Orange labels
+              font: {
+                size: 16,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  // Render the chart when the page loads
+  document.addEventListener("DOMContentLoaded", renderPieChart);
+
+  
+
+    
+  </script>
+  
+<div style="width: 50%; margin: auto; text-align: center; padding: 20px;">
+  <canvas id="incomeExpenseChart"></canvas>
+</div>
+
+</body>
+</html>

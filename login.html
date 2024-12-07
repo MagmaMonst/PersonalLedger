@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <style>
+    body {
+      background-color: #000; /* Black theme */
+      color: #ffa500; /* Orange theme */
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    .form-container {
+      background-color: #222; /* Slightly lighter black for contrast */
+      padding: 20px;
+      border-radius: 8px;
+      display: inline-block;
+      box-shadow: 0 0 10px #ffa500;
+    }
+    input {
+      display: block;
+      width: 80%;
+      margin: 10px auto;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: #333;
+      color: #ffa500;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ffa500;
+      color: #000;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ffb733;
+    }
+  </style>
+  <script>
+    // Check if a user is already logged in
+if (localStorage.getItem("loggedInUser")) {
+  alert("You are already logged in!");
+  window.location.href = "ledger.html"; // Redirect to the main ledger page
+}
+
+function login() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const users = JSON.parse(localStorage.getItem("users")) || {};
+
+  if (!email || !password) {
+    showMessage("Please fill in all fields.");
+    return;
+  }
+
+  // Check if the email exists and the password matches
+  if (users[email] && users[email].password === password) {
+    localStorage.setItem("loggedInUser", email); // Save the logged-in user's email
+    showMessage("Login successful!", "success");
+    setTimeout(() => window.location.href = "ledger.html", 1000); // Redirect to ledger page
+  } else {
+    showMessage("Invalid email or password.");
+  }
+}
+
+function register() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const users = JSON.parse(localStorage.getItem("users")) || {};
+
+  if (!email || !password) {
+    showMessage("Please fill in all fields.");
+    return;
+  }
+
+  // Check if the email is already registered
+  if (users[email]) {
+    showMessage("Email is already registered. Please login.");
+  } else {
+    users[email] = { password, ledgerData: [] }; // Create a new user with empty ledger data
+    localStorage.setItem("users", JSON.stringify(users));
+    showMessage("Registration successful! Please login.", "success");
+  }
+}
+
+function showMessage(message, type = "error") {
+  const messageElement = document.getElementById("message");
+  messageElement.textContent = message;
+  messageElement.style.color = type === "success" ? "#00ff00" : "#ff4500";
+}
+
+    </script>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Login</h2>
+    <input type="email" id="email" placeholder="Enter your email" required>
+    <input type="password" id="password" placeholder="Enter your password" required>
+    <button onclick="login()">Login</button>
+    <button onclick="register()">Register</button>
+    <p id="message"></p>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>
